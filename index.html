@@ -422,23 +422,12 @@ window._onCatData = function(){
         var p=D.find(function(x){return x.articleCode===code;});
         if(!p)return'';
         var pr=p.unitPrice!=null?p.unitPrice.toFixed(3)+'\u00a0\u20ac\u00a0/\u00a0'+esc(p.unitOfInvoice):'N/C';
-        return'<div class="ld-prodrow" data-code="'+esc(code)+'"><div class="ldbar" style="background:'+lib.color+'"></div><div class="ldinfo"><div class="ldd">'+esc(p.designation||code)+'</div><div class="ldm">'+esc(p.supplierName)+' \u2014 '+esc(p.articleCode)+'</div><div class="ldp">'+pr+'</div></div><button class="ldx" data-lib="'+lib.id+'" data-code="'+esc(code)+'" onclick="event.stopPropagation()">&#10005;</button></div>';
+        return'<div class="ld-prodrow" data-code="'+esc(code)+'"><div class="ldbar" style="background:'+lib.color+'"></div><div class="ldinfo"><div class="ldd">'+esc(p.designation||code)+'</div><div class="ldm">'+esc(p.supplierName)+' \u2014 '+esc(p.articleCode)+'</div><div class="ldp">'+pr+'</div></div><button class="ldx" data-lib="'+lib.id+'" data-code="'+esc(code)+'">&#10005;</button></div>';
       }).filter(Boolean).join('');
       return'<div class="ld-libsec"><div class="ld-libhead" onclick="ldExp(\''+lib.id+'\')">'+'<span class="lhcol" style="background:'+lib.color+'"></span><span class="lhname">'+esc(lib.name)+'</span><span class="lhcnt">'+lib.products.length+'</span><span class="lharrow" id="lha'+lib.id+'">&#9654;</span></div><div class="ld-libbody" id="lhb'+lib.id+'">'+(rows||'<div class="ld-empty">Aucun produit</div>')+'</div></div>';
     }).join('');
 
-    el.addEventListener('click',function h(e){
-      el.removeEventListener('click',h);
-      var xbtn=e.target.closest('.ldx');
-      if(xbtn){
-        var lib=libs.find(function(l){return l.id===xbtn.dataset.lib;});
-        if(lib){var i=lib.products.findIndex(function(x){return(x.code||x)===xbtn.dataset.code;});if(i>=0)lib.products.splice(i,1);}
-        saveLibs();updBadge();renderGrid();renderLibDrawer();
-        toast('Produit retir\u00e9.','var(--red)');return;
-      }
-      var row=e.target.closest('.ld-prodrow[data-code]');
-      if(row){closeDrawers();goSearch(row.dataset.code);}
-    });
+
   }
   window.ldExp=function(id){
     var b=document.getElementById('lhb'+id),a=document.getElementById('lha'+id);
@@ -514,6 +503,20 @@ window._onCatData = function(){
   // Suppression depuis mbody (compat panneau latéral)
   document.getElementById('tprod').textContent=D.length;
   document.getElementById('tsup').textContent=SUPS.length;
+  // Event delegation permanent sur LD_LIST
+  document.getElementById('LD_LIST').addEventListener('click',function(e){
+    var xbtn=e.target.closest('.ldx');
+    if(xbtn){
+      e.stopPropagation();
+      var lib=libs.find(function(l){return l.id===xbtn.dataset.lib;});
+      if(lib){var i=lib.products.findIndex(function(x){return(x.code||x)===xbtn.dataset.code;});if(i>=0)lib.products.splice(i,1);}
+      saveLibs();updBadge();renderGrid();renderLibDrawer();
+      toast('Produit retiré.','var(--red)');return;
+    }
+    var row=e.target.closest('.ld-prodrow[data-code]');
+    if(row){closeDrawers();goSearch(row.dataset.code);}
+  });
+
   buildSidebar();
   buildDrawerCats();
   renderDrawer();
